@@ -1,0 +1,18 @@
+{
+    "apps": [
+        {
+            "name": "daedalus",
+            "alb_priority_band": 100,
+            "backend_docker_image": "docker.io/strm/helloworld-http:latest",
+            "total_task_cpu": 256,
+            "total_task_memory": 512
+        },
+        {
+            "name": "icarus",
+            "alb_priority_band": 200,
+            "backend_docker_image": "docker.io/strm/helloworld-http:latest",
+            "total_task_cpu": 256,
+            "total_task_memory": 512
+        }
+    ]
+}

@@ -1,7 +1,15 @@
 
-# Welcome to your CDK Python project!
+# CDK Tech Test
 
-This is a blank project for CDK development with Python.
+This is a toy example AWS CDK (for Python) codebase with a set of exercises/extensions to be made.
+
+## Requirements
+You must already have the following installed and available:
+- Python
+- NodeJS (required for the CDK CLI)
+- CDK CLI
+
+## About CDK
 
 The `cdk.json` file tells the CDK Toolkit how to execute your app.
 
@@ -47,7 +55,7 @@ To add additional dependencies, for example other CDK libraries, just add
 them to your `setup.py` file and rerun the `pip install -r requirements.txt`
 command.
 
-## Useful commands
+### Useful commands
 
  * `cdk ls`          list all stacks in the app
  * `cdk synth`       emits the synthesized CloudFormation template
@@ -55,4 +63,5 @@ command.
  * `cdk diff`        compare deployed stack with current state
  * `cdk docs`        open CDK documentation
 
-Enjoy!
+## Exercises
+### Add a new shared Valkey cache

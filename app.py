@@ -1,28 +1,24 @@
-#!/usr/bin/env python3
 import os
+import json
 
 import aws_cdk as cdk
 
-from cdk_tech_test.cdk_tech_test_stack import CdkTechTestStack
+from app_ecosystem.stacks.common_infra import CommonInfraStack
+from app_ecosystem.stacks.standard_app import StandardAppStack
 
+cdk_app = cdk.App()
+common_infra = CommonInfraStack(cdk_app, construct_id="CommonInfraStack")
 
-app = cdk.App()
-CdkTechTestStack(app, "CdkTechTestStack",
-    # If you don't specify 'env', this stack will be environment-agnostic.
-    # Account/Region-dependent features and context lookups will not work,
-    # but a single synthesized template can be deployed anywhere.
-
-    # Uncomment the next line to specialize this stack for the AWS Account
-    # and Region that are implied by the current CLI configuration.
-
-    #env=cdk.Environment(account=os.getenv('CDK_DEFAULT_ACCOUNT'), region=os.getenv('CDK_DEFAULT_REGION')),
-
-    # Uncomment the next line if you know exactly what Account and Region you
-    # want to deploy the stack to. */
-
-    #env=cdk.Environment(account='123456789012', region='us-east-1'),
-
-    # For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
+app_configs_json_path = os.path.join(
+    os.path.dirname(__file__), "app_ecosystem", "app_configs", "apps.json"
+)
+app_configs = json.load(open(app_configs_json_path))
+for app_config in app_configs["apps"]:
+    app_stack = StandardAppStack(
+        cdk_app,
+        construct_id=f"{app_config['name'].title()}Stack",
+        app_config=app_config,
+        common_infra=common_infra,
     )
 
-app.synth()
+cdk_app.synth()
