@@ -204,14 +204,6 @@ class CommonNetworkingConstruct(Construct):
         return http_listener, https_listener
 
     def create_s3_vpc_endpoint_tg(self) -> elbv2.ApplicationTargetGroup:
-        # Allow outbound traffic from ALB to S3 VPC endpoint
-        for ip in self.network_config["s3_vpc_endpoint_ips"]:
-            self.alb.connections.allow_to(
-                ec2.Peer.ipv4(ip + "/32"),
-                ec2.Port.tcp(443),
-                f"Allow ALB to access S3 VPC endpoint IP {ip}",
-            )
-
         # Target group for S3 VPC endpoint
         return elbv2.ApplicationTargetGroup(
             self,
