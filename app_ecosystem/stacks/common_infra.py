@@ -9,13 +9,15 @@ from app_ecosystem.constructs.common.compute import CommonComputeConstruct
 
 
 class CommonInfraStack(Stack):
-    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
+    def __init__(
+        self, scope: Construct, construct_id: str, network_config: dict, **kwargs
+    ) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
         self.networking = CommonNetworkingConstruct(
             self,
             "CommonNetworking",
-            domain_name="app-ecosystem.example.com",
+            network_config=network_config,
         )
 
         self.storage = CommonStorageConstruct(

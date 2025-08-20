@@ -3,17 +3,9 @@ from aws_cdk import (
     aws_elasticloadbalancingv2 as elbv2,
     aws_elasticloadbalancingv2_targets as elbv2_targets,
     aws_route53 as route53,
+    aws_certificatemanager as acm,
 )
 from constructs import Construct
-
-ECS_TASK_PORT = 8000  # Default port for ECS tasks
-RDS_PORT = 5432  # Default port for PostgreSQL RDS
-EXISTING_ACM_CERTIFICATE_ARN = "<SOME_CERTIFICATE_ARN_HERE>"
-INBOUND_VPN_TRAFFIC_CIDR = "10.0.0.0/16"  # Example CIDR for inbound VPN traffic
-S3_VPC_ENDPOINT_IPS = {
-    "10.128.0.1": "ap-southeast-2a",
-    "10.128.1.1": "ap-southeast-2b",
-}  # Example IPs for S3 VPC endpoint in a specific region
 
 
 class CommonNetworkingConstruct(Construct):
@@ -22,15 +14,30 @@ class CommonNetworkingConstruct(Construct):
         scope: Construct,
         id: str,
         *,
-        domain_name: str = "app-ecosystem.example.com",
+        network_config: dict,
         **kwargs,
     ):
         super().__init__(scope, id, **kwargs)
 
-        self.ecs_task_port = ECS_TASK_PORT
-        self.rds_port = RDS_PORT
+        self.network_config = network_config
+        self.ecs_task_port = network_config.get("ecs_task_port", 8000)
 
         self.vpc = self.create_vpc()
+
+        self.hosted_zone = route53.PrivateHostedZone(
+            self,
+            "HostedZone",
+            zone_name=self.network_config["domain_name"],
+            vpc=self.vpc,
+        )
+
+        self.acm_certificate = acm.Certificate(
+            self,
+            "AcmCertificate",
+            domain_name=self.network_config["domain_name"],
+            validation=acm.CertificateValidation.from_dns(self.hosted_zone),
+            subject_alternative_names=[f"*.{self.network_config['domain_name']}"],
+        )
 
         self.create_security_groups()
         self.configure_security_groups()
@@ -40,8 +47,6 @@ class CommonNetworkingConstruct(Construct):
         self.rule_priority_bands = {}  # To avoid listener rule priority collisions
 
         self.http_listener, self.https_listener = self.create_listeners()
-
-        self.hosted_zone = route53.HostedZone(self, "HostedZone", zone_name=domain_name)
 
         self.s3_vpc_endpoint_target_group = self.create_s3_vpc_endpoint_tg()
 
@@ -58,7 +63,10 @@ class CommonNetworkingConstruct(Construct):
         return ec2.Vpc(
             self,
             "Vpc",
+            ip_addresses=ec2.IpAddresses.cidr(self.network_config["vpc_cidr"]),
+            restrict_default_security_group=True,
             max_azs=2,
+            nat_gateways=1,
             subnet_configuration=[
                 ec2.SubnetConfiguration(
                     name="Web", subnet_type=ec2.SubnetType.PUBLIC, cidr_mask=24
@@ -103,44 +111,44 @@ class CommonNetworkingConstruct(Construct):
     def configure_security_groups(self):
         # Allow inbound traffic to ALB from VPN CIDR
         self.alb_sg.connections.allow_from(
-            ec2.Peer.ipv4(INBOUND_VPN_TRAFFIC_CIDR),
+            ec2.Peer.ipv4(self.network_config["inbound_vpn_traffic_cidr"]),
             ec2.Port.tcp(443),
             "Allow inbound VPN traffic to ALB",
         )
 
         # Allow outbound traffic from ALB to S3 VPC endpoint
-        for ip, az in S3_VPC_ENDPOINT_IPS.items():
+        for ip in self.network_config["s3_vpc_endpoint_ips"]:
             self.alb_sg.connections.allow_to(
                 ec2.Peer.ipv4(ip + "/32"),
                 ec2.Port.tcp(443),
-                f"Allow ALB to access S3 VPC endpoint in {az}",
+                f"Allow ALB to access S3 VPC endpoint IP {ip}",
             )
 
         # Allow outbound traffic from ALB to ECS tasks
         self.alb_sg.connections.allow_to(
             self.ecs_sg,
-            ec2.Port.tcp(self.ecs_task_port),
+            ec2.Port.tcp(self.network_config["ecs_task_port"]),
             "Allow ALB to forward traffic to ECS tasks",
         )
 
         # Allow inbound traffic to ECS tasks from ALB
         self.ecs_sg.connections.allow_from(
             self.alb_sg,
-            ec2.Port.tcp(self.ecs_task_port),
+            ec2.Port.tcp(self.network_config["ecs_task_port"]),
             "Allow ECS tasks to receive traffic from ALB",
         )
 
         # Allow ECS tasks to connect to RDS database
         self.ecs_sg.connections.allow_to(
             self.db_sg,
-            ec2.Port.tcp(self.rds_port),
+            ec2.Port.tcp(self.network_config["rds_port"]),
             "Allow ECS tasks to connect to RDS database",
         )
 
         # Allow RDS database to accept connections from ECS tasks
         self.db_sg.connections.allow_from(
             self.ecs_sg,
-            ec2.Port.tcp(self.rds_port),
+            ec2.Port.tcp(self.network_config["rds_port"]),
             "Allow RDS database to accept connections from ECS tasks",
         )
 
@@ -156,7 +164,7 @@ class CommonNetworkingConstruct(Construct):
         )
 
         alb.connections.allow_from(
-            ec2.Peer.ipv4(INBOUND_VPN_TRAFFIC_CIDR),
+            ec2.Peer.ipv4(self.network_config["inbound_vpn_traffic_cidr"]),
             ec2.Port.tcp(443),
             "Allow inbound VPN traffic to ALB",
         )
@@ -172,9 +180,7 @@ class CommonNetworkingConstruct(Construct):
             protocol=elbv2.ApplicationProtocol.HTTPS,
             port=443,
             open=True,
-            certificates=[
-                elbv2.ListenerCertificate.from_arn(EXISTING_ACM_CERTIFICATE_ARN)
-            ],
+            certificates=[self.acm_certificate],
             default_action=elbv2.ListenerAction.fixed_response(
                 status_code=503,
                 content_type="text/plain",
@@ -194,11 +200,11 @@ class CommonNetworkingConstruct(Construct):
 
     def create_s3_vpc_endpoint_tg(self) -> elbv2.ApplicationTargetGroup:
         # Allow outbound traffic from ALB to S3 VPC endpoint
-        for ip, az in S3_VPC_ENDPOINT_IPS.items():
+        for ip in self.network_config["s3_vpc_endpoint_ips"]:
             self.alb.connections.allow_to(
                 ec2.Peer.ipv4(ip + "/32"),
                 ec2.Port.tcp(443),
-                f"Allow ALB to access S3 VPC endpoint in {az}",
+                f"Allow ALB to access S3 VPC endpoint IP {ip}",
             )
 
         # Target group for S3 VPC endpoint
@@ -210,6 +216,6 @@ class CommonNetworkingConstruct(Construct):
             target_type=elbv2.TargetType.IP,
             targets=[
                 elbv2_targets.IpTarget(ip_address=ip)
-                for ip in S3_VPC_ENDPOINT_IPS.keys()
+                for ip in self.network_config["s3_vpc_endpoint_ips"]
             ],
         )

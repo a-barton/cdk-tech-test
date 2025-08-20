@@ -1,0 +1,11 @@
+{
+    "domain_name": "app-ecosystem.example.com",
+    "vpc_cidr": "10.0.0.0/16",
+    "inbound_vpn_traffic_cidr": "10.0.0.0/16",
+    "s3_vpc_endpoint_ips": [
+        "10.128.0.1",
+        "10.128.1.1"
+    ],
+    "ecs_task_port": 8000,
+    "rds_port": 5432
+}
