@@ -20,7 +20,8 @@ class CommonNetworkingConstruct(Construct):
         super().__init__(scope, id, **kwargs)
 
         self.network_config = network_config
-        self.ecs_task_port = network_config.get("ecs_task_port", 8000)
+        self.ecs_task_port = network_config["ecs_task_port"]
+        self.s3_vpc_endpoint_id = network_config["s3_vpc_endpoint_id"]
 
         self.vpc = self.create_vpc()
 
