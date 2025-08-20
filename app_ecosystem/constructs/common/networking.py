@@ -176,11 +176,12 @@ class CommonNetworkingConstruct(Construct):
         self,
     ) -> tuple[elbv2.ApplicationListener, elbv2.ApplicationListener]:
         # HTTPS Listener (port 443)
-        self.https_listener = self.alb.add_listener(
+        https_listener = self.alb.add_listener(
             "HttpsListener",
             protocol=elbv2.ApplicationProtocol.HTTPS,
             port=443,
-            open=True,
+            open=False,
+            ssl_policy=elbv2.SslPolicy.FORWARD_SECRECY_TLS12_RES,
             certificates=[self.acm_certificate],
             default_action=elbv2.ListenerAction.fixed_response(
                 status_code=503,
@@ -190,14 +191,17 @@ class CommonNetworkingConstruct(Construct):
         )
 
         # HTTP Listener (port 80) with redirect to HTTPS
-        self.http_listener = self.alb.add_listener(
+        http_listener = self.alb.add_listener(
             "HttpListener",
             port=80,
-            open=True,
-            default_action=elbv2.ListenerAction.redirect(protocol="HTTPS", port="443"),
+            open=False,
+            protocol=elbv2.ApplicationProtocol.HTTP,
+            default_action=elbv2.ListenerAction.redirect(
+                protocol="HTTPS", port="443", permanent=True
+            ),
         )
 
-        return self.http_listener, self.https_listener
+        return http_listener, https_listener
 
     def create_s3_vpc_endpoint_tg(self) -> elbv2.ApplicationTargetGroup:
         # Allow outbound traffic from ALB to S3 VPC endpoint
