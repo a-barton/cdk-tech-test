@@ -30,6 +30,8 @@ class AppSpecificStorageConstruct(Construct):
             bucket_name=f"{self.app_config['name']}.{common_infra.networking.hosted_zone.zone_name}",
             block_public_access=s3.BlockPublicAccess.BLOCK_ALL,
             encryption=s3.BucketEncryption.S3_MANAGED,
+            enforce_ssl=True,
+            minimum_tls_version=1.2,
             removal_policy=RemovalPolicy.DESTROY,
             auto_delete_objects=True,
         )

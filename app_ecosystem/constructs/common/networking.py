@@ -52,7 +52,7 @@ class CommonNetworkingConstruct(Construct):
         self.s3_vpc_endpoint_target_group = self.create_s3_vpc_endpoint_tg()
 
     def get_rule_priority_for_band(self, band_start: int) -> int:
-        """Get the next available rule priority for a given band."""
+        # Get the next available rule priority for a given band
         if band_start not in self.rule_priority_bands:
             self.rule_priority_bands[band_start] = band_start
         else:
@@ -60,7 +60,7 @@ class CommonNetworkingConstruct(Construct):
         return self.rule_priority_bands[band_start]
 
     def create_vpc(self) -> ec2.Vpc:
-        # VPC with 1 public subnet and 2 private subnets
+        # VPC with 1 public subnet (Web) and 2 private subnets (Core and DB)
         return ec2.Vpc(
             self,
             "Vpc",
@@ -154,7 +154,7 @@ class CommonNetworkingConstruct(Construct):
         )
 
     def create_alb(self) -> elbv2.ApplicationLoadBalancer:
-        # Internal Application Load Balancer
+        # Internal Application Load Balancer - placed within Web (public) subnet
         alb = elbv2.ApplicationLoadBalancer(
             self,
             "InternalALB",
@@ -162,12 +162,6 @@ class CommonNetworkingConstruct(Construct):
             internet_facing=False,
             vpc_subnets=ec2.SubnetSelection(subnet_group_name="Web"),
             security_group=self.alb_sg,
-        )
-
-        alb.connections.allow_from(
-            ec2.Peer.ipv4(self.network_config["inbound_vpn_traffic_cidr"]),
-            ec2.Port.tcp(443),
-            "Allow inbound VPN traffic to ALB",
         )
 
         return alb

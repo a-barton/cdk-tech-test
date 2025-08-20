@@ -30,12 +30,14 @@ class AppSpecificNetworkingConstruct(Construct):
 
         self.app_config = app_config
 
+        # DNS record to resolve app domain to the ALB
         self.route53_record = self.create_route53_record(common_infra)
 
         self.host_header = (
             f"{self.app_config['name']}.{common_infra.networking.hosted_zone.zone_name}"
         )
 
+        # Target group for ALB to route backend (API) traffic to ECS service
         self.ecs_target_group = elbv2.ApplicationTargetGroup(
             self,
             f"{self.app_config['name'].title()}ECSTargetGroup",
@@ -66,9 +68,7 @@ class AppSpecificNetworkingConstruct(Construct):
 
     def create_route53_record(self, common_infra: CommonInfraStack) -> route53.ARecord:
         record_name = (
-            self.app_config["name"]
-            + "."
-            + common_infra.networking.hosted_zone.zone_name
+            f"{self.app_config['name']}.{common_infra.networking.hosted_zone.zone_name}"
         )
         return route53.ARecord(
             self,

@@ -50,5 +50,5 @@ class CommonStorageConstruct(Construct):
             serverless_v2_max_capacity=2,
             serverless_v2_auto_pause_duration=Duration.minutes(5),
             removal_policy=RemovalPolicy.DESTROY,
-            writer=rds.ClusterInstance.serverless_v2("AppDatabaseWriter"),
+            writer=rds.ClusterInstance.serverless_v2("AppDatabaseWriterInstance"),
         )

@@ -38,7 +38,7 @@ class AppSpecificComputeConstruct(Construct):
             ],
             secrets={
                 "DB_CREDS": ecs.Secret.from_secrets_manager(
-                    common_infra.storage.db_creds_secret
+                    common_infra.storage.db_creds_secret  # Creds to allow app backends to access RDS cluster
                 ),
             },
         )
