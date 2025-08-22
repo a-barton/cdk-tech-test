@@ -1,59 +1,49 @@
 
 # CDK Tech Test
 
-This is a toy example AWS CDK (for Python) codebase with a set of exercises/extensions to be made.
+This is a toy example AWS CDK (for Python) codebase designed for the purposes of testing proficiency with AWS CDK, Python and AWS cloud infrastructure in general.
 
-## Requirements
+### Disclaimer
+The CDK codebase in this repo is **NOT** intended to be a fully functional, deployable and standalone AWS cloud solution. It is purely for the purposes of testing AWS CDK proficiency, with the 'solution' to each exercise merely requiring that the `cdk synth` command succeeds, not that any actual cloud resources are deployed.
+
+## Requirements/Dependencies
 You must already have the following installed and available:
 - Python
-- NodeJS (required for the CDK CLI)
-- CDK CLI
+- [uv](https://docs.astral.sh/uv/) (Python package manager)
+- NodeJS (required to use the CDK CLI) - using [nvm](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating) to install NodeJS is recommend 
+- [npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm) (required to install CDK CLI) 
+- [AWS CDK (Cloud Development Kit) CLI](https://docs.aws.amazon.com/cdk/v2/guide/cli.html)
 
-## About CDK
+## Setup
+Assuming the abovementioned dependencies are installed, you can initialise this repo as follows:
+
+### Sync local Python virtual environment with uv lockfile
+```bash
+uv sync
+```
+
+### Activate the Python virtual environment
+
+On Linux/MacOS:
+```bash
+source .venv/bin/activate
+```
+
+On Windows:
+```cmd
+.venv\Scripts\activate.bat
+```
+
+### Confirm `cdk synth` command now works
+
+You should now be able to use the CDK CLI to synthesise the CDK codebase into CloudFormation templates (synthesised template files will be emitted to a `cdk.out` directory):
+```bash
+cdk synth
+```
+
+## About CDK (AWS docs)
 
 The `cdk.json` file tells the CDK Toolkit how to execute your app.
-
-This project is set up like a standard Python project.  The initialization
-process also creates a virtualenv within this project, stored under the `.venv`
-directory.  To create the virtualenv it assumes that there is a `python3`
-(or `python` for Windows) executable in your path with access to the `venv`
-package. If for any reason the automatic creation of the virtualenv fails,
-you can create the virtualenv manually.
-
-To manually create a virtualenv on MacOS and Linux:
-
-```
-$ python3 -m venv .venv
-```
-
-After the init process completes and the virtualenv is created, you can use the following
-step to activate your virtualenv.
-
-```
-$ source .venv/bin/activate
-```
-
-If you are a Windows platform, you would activate the virtualenv like this:
-
-```
-% .venv\Scripts\activate.bat
-```
-
-Once the virtualenv is activated, you can install the required dependencies.
-
-```
-$ pip install -r requirements.txt
-```
-
-At this point you can now synthesize the CloudFormation template for this code.
-
-```
-$ cdk synth
-```
-
-To add additional dependencies, for example other CDK libraries, just add
-them to your `setup.py` file and rerun the `pip install -r requirements.txt`
-command.
 
 ### Useful commands
 
@@ -63,5 +53,5 @@ command.
  * `cdk diff`        compare deployed stack with current state
  * `cdk docs`        open CDK documentation
 
-## Exercises
-### Add a new shared Valkey cache
+## Architecture
+
