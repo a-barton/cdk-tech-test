@@ -1,0 +1,11 @@
+flowchart BT
+    CommonComputeConstruct -. Depends On .-> CommonNetworkingConstruct
+    CommonStorageConstruct -. Depends On .-> CommonNetworkingConstruct
+
+    AppSpecificComputeConstruct -. Depends On .-> CommonComputeConstruct
+    AppSpecificComputeConstruct -. Depends On .-> CommonStorageConstruct
+    AppSpecificComputeConstruct -. Depends On .-> CommonNetworkingConstruct
+    AppSpecificNetworkingConstruct -. Depends On .-> CommonNetworkingConstruct
+    AppSpecificNetworkingConstruct -. Depends On .-> AppSpecificAuthConstruct
+    AppSpecificNetworkingConstruct -. Depends On .-> AppSpecificComputeConstruct
+    AppSpecificStorageConstruct -. Depends On .-> CommonNetworkingConstruct

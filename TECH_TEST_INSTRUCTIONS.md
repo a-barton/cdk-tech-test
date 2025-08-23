@@ -2,7 +2,20 @@
 Below you will find a series of exercises to be completed as part of this tech test.
 
 ## Housekeeping
-- For each exercise, implement your changes in a separate branch (off the original `main` branch of the repo) with a branch name appropriately related to the exercise.
+
+### Solution Submission
+The exact mechanism of how you submit your solution(s) to this tech test is open to your preference. The main options would be:
+- You fork the original repo into your own GitHub (or other code collaboration platform) repo
+    - If you make the forked repo public, you can just share a direct link to it as your submission
+    - If you make the forked repo private, you will need to share access somehow
+- You create a git bundle of your version of the repo (with your exercise solutions implemented) and submit the bundle file itself
+
+### Exercise Separation
+Please ensure each exercise solution is implemented separately, the mechanism of how is up to you, e.g.:
+- Separate branches (relevantly named)
+- Separate pull requests, opened within abovementioned GitHub (or other code collaboration platform) repo of your own
+
+### Solution Expectation
 - Your solution to each exercise should be able to successfully synthesise the CDK codebase into CloudFormation templates - i.e. running `cdk synth` should succeed on the given branch.
 - Don't worry about attempting to DEPLOY any of the synthesised CloudFormation templates.
 
@@ -30,7 +43,7 @@ Currently the CDK codebase only supports defining a singular Docker container fo
 
 Extend the CDK codebase to support defining MULTIPLE containers for each app backend's ECS task.
 
-Replace the existing content of `app_ecosystem/config/apps.json` with the following, which now includes a `containers` key for each app config that specifies a list/array of container definitions:
+Replace the existing content of `app_ecosystem/config/apps.json` with the following, which now includes a `containers` key for each app config that specifies a list/array of container definitions (note the docker image URI is no longer present at the parent level of the app config, but is now instead in each container definition):
 
 ```json
 {
@@ -52,7 +65,6 @@ Replace the existing content of `app_ecosystem/config/apps.json` with the follow
         {
             "name": "icarus",
             "alb_priority_band": 200,
-            "backend_docker_image": "docker.io/strm/helloworld-http:latest",
             "total_task_cpu": 1024,
             "total_task_memory": 2048,
             "containers": [
@@ -73,7 +85,6 @@ Replace the existing content of `app_ecosystem/config/apps.json` with the follow
         {
             "name": "theseus",
             "alb_priority_band": 300,
-            "backend_docker_image": "docker.io/strm/helloworld-http:latest",
             "total_task_cpu": 512,
             "total_task_memory": 1024,
             "containers": [
@@ -111,3 +122,13 @@ Extend the existing CDK codebase to define an AWS Elasticache Valkey serverless 
 - The cache cluster must have its own security group - all security groups must be configured correctly to facilitate traffic FROM the app backend ECS tasks TO the cache cluster.
 - Traffic to the cache cluster must be over port 6379.
 - The app backend ECS tasks need to be provided with the cache cluster's endpoint address, such that each application backend knows how to reach the cache - the exact mechanism of how is up to you.
+
+## Exercise 4 - Any suggestions or critique?
+Do you think this IaC approach could be improved, optimised or potentially even completely reworked?
+
+If so, please document your suggestions/critique (e.g. within a new markdown file at the root of the repo).
+
+For each suggestion/critique please include:
+- Your rationale for why the current approach is problematic or lacking.
+- A description of how exactly you would suggest it be modified or reworked.
+- Your rationale for why your proposed change would improve the approach.

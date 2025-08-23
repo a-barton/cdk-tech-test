@@ -51,7 +51,6 @@ class StandardAppStack(Stack):
             f"{self.app_config['name'].title()}AppNetworking",
             common_infra=common_infra,
             app_compute=self.compute,
-            app_storage=self.storage,
             app_auth=self.auth,
             app_config=self.app_config,
         )

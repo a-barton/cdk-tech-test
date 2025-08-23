@@ -9,7 +9,6 @@ from constructs import Construct
 
 from app_ecosystem.stacks.common_infra import CommonInfraStack
 from app_ecosystem.constructs.app_specific.compute import AppSpecificComputeConstruct
-from app_ecosystem.constructs.app_specific.storage import AppSpecificStorageConstruct
 from app_ecosystem.constructs.app_specific.auth import AppSpecificAuthConstruct
 
 
@@ -21,7 +20,6 @@ class AppSpecificNetworkingConstruct(Construct):
         *,
         common_infra: CommonInfraStack,
         app_compute: AppSpecificComputeConstruct,
-        app_storage: AppSpecificStorageConstruct,
         app_auth: AppSpecificAuthConstruct,
         app_config: dict,
         **kwargs,
@@ -79,19 +77,6 @@ class AppSpecificNetworkingConstruct(Construct):
                 route53_targets.LoadBalancerTarget(common_infra.networking.alb)
             ),
         )
-
-    def create_target_groups(
-        self,
-        common_infra: CommonInfraStack,
-        app_compute: AppSpecificComputeConstruct,
-    ):
-        self.ecs_target_group = elbv2.ApplicationTargetGroup(
-            self,
-            f"{self.app_config['name'].title()}ECSTargetGroup",
-            vpc=common_infra.networking.vpc,
-            port=common_infra.networking.ecs_task_port,
-        )
-        self.ecs_target_group.add_target(app_compute.ecs_service)
 
     def add_listener_rule(
         self,
